@@ -1,0 +1,105 @@
+# MERFISH hypothalamic preoptic region (5 slices)
+# Run per slice with --dataset_id and --raw_file overrides:
+#   python data_processing/data_preprocess.py --config config_merfish.yaml \
+#       --raw_file MERFISH_0.04.h5ad --dataset_id MERFISH_0.04
+#   python data_processing/prepare_data.py --config config_merfish.yaml \
+#       --dataset_id MERFISH_0.04 --seed 1
+
+# ── 数据路径 ─────────────────────────────────────────────────────────────────
+data:
+  dataset_id: MERFISH_0.04           # default slice; override via --dataset_id
+  base_dir: ../data/MERFISH_hypothalamic
+  intermediate_dir: ../data/MERFISH_hypothalamic/intermediate_data
+  output_dir: ../output/MERFISH
+  raw_file: MERFISH_0.04.h5ad        # default slice; override via --raw_file
+
+# ── 数据预处理 ────────────────────────────────────────────────────────────────
+preprocessing:
+  label_col: ground_truth            # 8 spatial domains
+  do_normalize: false                # X already volume-normalized; skip normalize_total
+  n_top_genes: 5000                  # 155 genes < 5000 → HVG auto-skipped
+  target_sum: 1.0e+4
+  max_value: 15
+  pca_components: 50                 # 155 >= 50, PCA runs normally
+  kmeans:
+    use_spatial: true                # add spatial coords to K-means features
+    spatial_weight: 3.0              # weight for normalized spatial coords
+    n_init: 30                       # number of random K-means restarts
+
+# ── 图构建 ────────────────────────────────────────────────────────────────────
+# Spatial coords in microns, range ~1800 units per slice
+graph:
+  tangent:
+    n_neighbors: 100
+    lam: 1.0e-2
+    min_same: 5
+    min_diff: 5
+  neighbors:
+    width: 170                       # tuned for deg_mean ≈ 19 (embryo baseline)
+    height: 43
+    radius: 43
+    num: 25
+  weights:
+    lambda_similarity: 1.0
+
+# ── 训练通用参数 ───────────────────────────────────────────────────────────────
+training:
+  algorithm: ours
+  seed: 1
+  max_iter: 20000
+  print_every: 10
+  grad_every: 100
+  device: cuda
+  nx: 5
+  ny: 5
+  T: 1.0e-4
+  T_init: 1.0
+  anneal_iters: 1
+  weights_scale: 0.005
+  neighbors_num: 25
+  lambda_similarity: 1.0
+
+# ── 算法专属超参 ───────────────────────────────────────────────────────────────
+algorithms:
+  ours:
+    eta_m: 2.0e-02
+    eta_s: 2.0e+01
+    num_steps: 15
+    newton_steps: 5
+  sgd:
+    lr_alpha: 1.0e+3
+    lr_m0: 1.0e-2
+    lr_rho0: 1.0e+0
+  adamw:
+    lr_alpha: 1.0e+4
+    lr_m0: 1.0e-3
+    lr_rho0: 1.0e-1
+    beta1: 0.9
+    beta2: 0.999
+    adam_eps: 1.0e-8
+    wd_alpha: 0.0
+    wd_m0: 0.0
+    wd_rho0: 0.0
+  rmsprop:
+    lr_alpha: 1.0e+3
+    lr_m0: 1.0e-3
+    lr_rho0: 1.0e-2
+    alpha: 0.99
+    eps: 1.0e-8
+    momentum: 0.0
+    centered: false
+  cv:
+    lr_alpha: 1.0e+4
+    lr_m0: 1.0e-2
+    lr_rho0: 1.0e+0
+  svi_constant:
+    step_size: 1.0e-3
+    fp_steps: 20
+    T: 1.0e-4
+    T_init: 1.0e-4
+  svi_faster:
+    tau: 1.0e-1
+    scale: 1
+    fp_steps: 20
+    T: 1.0e-4
+    T_init: 1.0e-4

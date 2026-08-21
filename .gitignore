@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Results and outputs
+outputs/
+experiments/*/output/
+experiments/*/images/
+experiments/*/logs/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data (large files)
+*.npz
+*.h5
+*.h5ad
+data/MERFISH*/
+data/MOSTA*/
+
+# Temporary files
+*.tmp
+*.log
